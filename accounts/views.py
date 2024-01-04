@@ -9,6 +9,7 @@ from accounts.serializers import *
 class RegisterAPI(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
+        
         serializer = UserRegisterSerializers(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
