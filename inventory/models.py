@@ -70,6 +70,7 @@ class ProductVariants(models.Model):
 class ProductImages(models.Model):
     products = models.ForeignKey(ProductVariants, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="product_imgs/")
+    default_img = models.BooleanField(default=False)
     
     def __str__(self):
         return self.products

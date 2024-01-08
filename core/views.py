@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.serializers.customers import CustomerSerializers, CustomUser
-from core.serializers.category import CategorySerializers, Category
-from core.serializers.brands import BrandSerializers, Brands
+from core.serializers.descriptors import CategorySerializers, Category, BrandSerializers, Brands
+from core.serializers.products import *
 
 # views
 
@@ -81,7 +81,6 @@ class Category_API(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            print(serializer.errors)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -113,17 +112,19 @@ class Brand_API(APIView):
         serializer = BrandSerializers(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
-        print(serializer.errors)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
         
     def put(self, request, pk):
         try:
+            data = request.data.copy()
             brand = Brands.objects.get(pk=pk)
-            serializer = BrandSerializers(brand, data=request.data, partial=True)
+            if type(data['brand_image']) == str:
+                data.pop('brand_image')
+            serializer = BrandSerializers(brand, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -136,4 +137,54 @@ class Brand_API(APIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-#
+class Product_API(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                product = Products.objects.get(pk=pk)
+                serializer = ProductSerializers(product, many=False)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            products = Products.objects.all()
+            serializer = ProductSerializers(products, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    def post(self, request):
+        serializer = ProductSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        try:
+            data = request.data.copy()
+            product = Products.objects.get(pk=pk)
+            if 'base_image' in data:
+                if type(data['base_image']) == str:
+                    data.pop('base_image')
+            serializer = ProductSerializers(product, data=data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    def delete(self, request):
+        try:
+            for id in request.data:
+                product = Products.objects.get(id=id)
+                product.delete()
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+class VARIANT_API(APIView):
+    permission_classes = [IsAdminUser]
+    def post(self, request):
+        print(request.data.dict())
+        return Response(status=status.HTTP_200_OK)
