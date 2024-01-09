@@ -18,7 +18,10 @@ urlpatterns = [
     path("products/<int:pk>", Product_API.as_view(), name="product-api"),
 
     path("variants", VARIANT_API.as_view(), name="variants-api"),
+    path("variants/<int:pk>", VARIANT_API.as_view(), name="variant-api"),
 
     # Handler Function
     path("get-descriptors", getDescriptors, name="get-descriptors"),
+    path("add-alternatives", addAlternatives, name="add-alternatives"),
+    path("get-alternatives/<int:id>", getAlternatives, name="get-alternatives"),
 ]

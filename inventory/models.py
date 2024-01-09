@@ -62,7 +62,7 @@ class ProductVariants(models.Model):
     status = models.BooleanField(default=True)
     
     def __str__(self):
-        return self.product
+        return self.product.product_name
     
     class Meta:
         verbose_name_plural = "PRODUCT VARIANTS"
