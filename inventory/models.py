@@ -56,7 +56,7 @@ class ProductAttributes(models.Model):
 
 class ProductVariants(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
-    product_attributes = models.ManyToManyField(ProductAttributes)
+    product_attributes = models.ManyToManyField(ProductAttributes, null=True)
     price = models.IntegerField(null=False)
     stock = models.IntegerField(default=0)
     status = models.BooleanField(default=True)
@@ -68,11 +68,11 @@ class ProductVariants(models.Model):
         verbose_name_plural = "PRODUCT VARIANTS"
     
 class ProductImages(models.Model):
-    products = models.ForeignKey(ProductVariants, on_delete=models.CASCADE)
+    products = models.ManyToManyField(ProductVariants)
     image = models.ImageField(upload_to="product_imgs/")
     default_img = models.BooleanField(default=False)
     
-    def __str__(self):
+    def __unicode__(self):
         return self.products
     
     class Meta:

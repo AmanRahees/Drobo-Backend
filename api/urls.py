@@ -1,5 +1,6 @@
 from django.urls import path
 from accounts.views import *
+from base.views import *
 
 urlpatterns = [
     # ACCOUNTS
@@ -8,5 +9,6 @@ urlpatterns = [
     path("accounts/token/refresh", TokenRefreshAPI.as_view(), name="token-refresh-api"),
 
     # SHOP
-    
+    path("shop/products", Shop_API.as_view(), name="shop-products-api"),
+    path("shop/product/<int:pk>", ProductView_API.as_view(), name="product-view-api"),
 ]

@@ -26,6 +26,7 @@ def getDescriptors(request):
 def addAlternatives(request):
     data = request.data.dict()
     variant_data, image_data = convert_data(data)
+    vars = []
     for obj in variant_data:
         attrs = obj.pop("product_attributes")
         variant_attrs = []
@@ -34,7 +35,6 @@ def addAlternatives(request):
             attr_pk = ProductAttributes.objects.create(attribute_name=attr_name.upper(), attribute_value=attr_value.upper())
             variant_attrs.append(attr_pk)
         obj["product_attributes"] = variant_attrs
-        print(obj)
         product = Products.objects.get(id=obj["product"])
         variant_obj = ProductVariants.objects.create(
             product=product,
@@ -43,7 +43,13 @@ def addAlternatives(request):
             status=obj["status"],
         )
         variant_obj.product_attributes.set(obj["product_attributes"])
-        print(variant_obj)
+        vars.append(variant_obj)
+    for _obj in image_data:
+        img_obj = ProductImages.objects.create(
+            image = _obj["image"],
+            default_img = _obj["default_img"],
+        )
+        img_obj.products.set(vars)
     return Response(status=status.HTTP_200_OK)
 
 @api_view(['GET'])
