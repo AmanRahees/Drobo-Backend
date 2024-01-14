@@ -1,9 +1,10 @@
 from base.serializers.products import *
 from inventory.models import *
+from django.db.models.functions import Random
 
 def getShopProducts():
     try:
-        variants = ProductVariants.objects.all()
+        variants = ProductVariants.objects.annotate(random_order=Random(seed=2)).order_by('random_order')
         serializer = ShopProductSerializer(variants, many=True)
         return serializer.data
     except:
@@ -43,3 +44,34 @@ def getProductData(pk):
         'variants': serialized_variants
     })
     return serializer.data
+
+def getVariantData(pk):
+    variant_data = {}
+    variant = ProductVariants.objects.get(pk=pk)
+    variant_data["id"] = variant.id
+    variant_data["product_name"] = variant.product.product_name
+    for i in variant.product_attributes.all():
+        variant_data[i.attribute_name] = i.attribute_value
+    variant_data["price"] = variant.price
+    variant_data["stock"] = variant.stock
+    obj_variants = []
+    product = Products.objects.get(id=variant.product.id)
+    variants = ProductVariants.objects.filter(product=product)
+    for i in variants:
+        variants_data = {}
+        variants_data["id"] = i.id
+        variants_data["product_name"] = i.product.product_name
+        for attrs in i.product_attributes.all():
+            variants_data[attrs.attribute_name] = attrs.attribute_value
+        variants_data["price"] = i.price
+        variants_data["stock"] = i.stock
+        for img in ProductImages.objects.filter(products=i):
+            if img.default_img == True:
+                variants_data['image'] = img.image.url
+        obj_variants.append(variants_data)
+    print(obj_variants)
+    unique = []
+    for item in obj_variants:
+        unique.append(item['COLOR'])
+    print(set(unique))
+    return variant_data

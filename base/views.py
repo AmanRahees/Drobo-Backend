@@ -10,7 +10,6 @@ class Shop_API(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
         result = getShopProducts()
-        print(result)
         return Response(result, status=HTTP_200_OK)
     
 class ProductView_API(APIView):

@@ -185,10 +185,24 @@ class Product_API(APIView):
         
 class VARIANT_API(APIView):
     permission_classes = [IsAdminUser]
-    def get(self, request):
-        varinats = ProductVariants.objects.all()
-        serializer = VariantSerializers(varinats, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get(self, request, pk):
+        if pk:
+            try:
+                product = Products.objects.get(pk=pk)
+                product_serializer = ProductSerializers(product, many=False)
+                varinats = ProductVariants.objects.filter(product=product)
+                variants_serializer = VariantSerializers(varinats, many=True)
+                data = {
+                    "product": product_serializer.data,
+                    "variants": variants_serializer.data,
+                }
+                return Response(data, status=status.HTTP_200_OK)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            varinats = ProductVariants.objects.all()
+            serializer = VariantSerializers(varinats, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = VariantSerializers(data=request.data)

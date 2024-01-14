@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'accounts',
     'api',
     'base',
+    'contexts',
     'cart',
     'core',
     'inventory'

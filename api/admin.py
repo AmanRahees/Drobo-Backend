@@ -1,6 +1,7 @@
 from django.contrib import admin
 from accounts.models import CustomUser
 from inventory.models import *
+from cart.models import Cart
 
 class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug':('product_name',)}
@@ -13,3 +14,5 @@ admin.site.register(Products, ProductAdmin)
 admin.site.register(ProductAttributes)
 admin.site.register(ProductVariants)
 admin.site.register(ProductImages)
+
+admin.site.register(Cart)
