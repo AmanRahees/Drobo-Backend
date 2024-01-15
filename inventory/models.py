@@ -56,7 +56,7 @@ class ProductAttributes(models.Model):
 
 class ProductVariants(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
-    product_attributes = models.ManyToManyField(ProductAttributes, null=True)
+    product_attributes = models.ManyToManyField(ProductAttributes)
     price = models.IntegerField(null=False)
     stock = models.IntegerField(default=0)
     status = models.BooleanField(default=True)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from cart.models import Cart, CustomUser
+from cart.models import *
 from inventory.models import *
 
 
@@ -47,4 +47,9 @@ class CartSerializers(serializers.ModelSerializer):
     cart_product = CartProductSerializer()
     class Meta:
         model = Cart
+        fields = "__all__"
+
+class Address_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerAddress
         fields = "__all__"

@@ -13,6 +13,10 @@ urlpatterns = [
     path("shop/products", Shop_API.as_view(), name="shop-products-api"),
     path("shop/product/<int:pk>", ProductView_API.as_view(), name="product-view-api"),
 
+    # PROFILE
+    path("profile/address", Address_API.as_view(), name="address-api"),
+
+    # CART
     path("cart", Cart_API.as_view(), name="carts-api"),
     path("cart/<int:pk>", Cart_API.as_view(), name="cart-api"),
 ]
