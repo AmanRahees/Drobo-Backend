@@ -11,6 +11,9 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"{self.user} -> {self.cart_product.product.product_name}"
+    
+    def subtotal(self):
+        return self.cart_product.price * self.quantity
 
     class Meta:
         ordering = ("-id",)

@@ -3,7 +3,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_403_FO
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from contexts.serializers import *
-from cart.models import Cart
+from cart.models import *
 
 # Create your views here.
 
@@ -25,8 +25,13 @@ def get_descriptors(request):
 def getUserItems(request):
     curr_user = request.user
     cartItems = Cart.objects.filter(user=curr_user)
+    total_amount = 0
+    for item in cartItems:
+        total_amount += item.cart_product.price * item.quantity
+    total_orders = Orders.objects.filter(user=curr_user)
     context = {
         "cart_counter": len(cartItems),
-        "total_orders": 0,
+        "total_amount": total_amount,
+        "total_orders": total_orders,
     }
     return Response(context, status=HTTP_200_OK)

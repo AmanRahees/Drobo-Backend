@@ -2,8 +2,10 @@ from rest_framework.response import Response
 from rest_framework.status import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from cart.serializers import CartSerializers, Cart
+from cart.serializers import CartSerializers
+from cart.models import Cart, CustomerAddress, Orders, OrderItem
 from inventory.models import ProductVariants
+from cart.func import generateOrderIds
 
 # Create your views here.
 
@@ -51,3 +53,43 @@ class Cart_API(APIView):
         except:
             return Response(status=HTTP_404_NOT_FOUND)
         
+class Checkout_API(APIView):
+    def post(self, request):
+        try:
+            curr_user = request.user
+            cartItem = Cart.objects.filter(user=curr_user)
+            total_amount = 0
+            for item in cartItem:
+                total_amount += item.cart_product.price * item.quantity
+            address_obj = CustomerAddress.objects.get(pk=request.data['address'])
+            ORDER_ID, TRACKING_NO = generateOrderIds()
+            order = Orders.objects.create(
+                user = curr_user,
+                phone = address_obj.phone,
+                house_name = address_obj.house_name,
+                road_name = address_obj.road_name,
+                city = address_obj.city,
+                district = address_obj.district,
+                state = address_obj.state,
+                pincode = address_obj.pincode,
+                type = address_obj.type,
+                total_price = total_amount,
+                order_no = ORDER_ID,
+                tracking_no = TRACKING_NO,
+                payment_mode = None,
+                payment_id = None
+            )
+            for item in cartItem:
+                OrderItem.objects.create(
+                    order = order,
+                    product = item.cart_product,
+                    price = item.subtotal(),
+                    quantity = item.quantity
+                )
+                order_product = ProductVariants.objects.get(id=item.cart_product.id)
+                order_product.stock -= item.quantity
+                order_product.save()
+            Cart.objects.filter(user=curr_user, cart_product__status=True).delete()
+            return Response(status=HTTP_200_OK)
+        except:
+            return Response(status=HTTP_404_NOT_FOUND)
