@@ -18,11 +18,16 @@ class AttributeSerializers(serializers.ModelSerializer):
         fields = "__all__"
 
 class VariantSerializers(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
     product_attributes = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     class Meta:
         model = ProductVariants
         fields = "__all__"
+
+    def get_product(self, obj):
+        product = Products.objects.get(id=obj.product.id)
+        return product.product_name
 
     def get_product_attributes(self, obj):
         attributes = {}

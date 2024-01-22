@@ -43,6 +43,7 @@ class Products(models.Model):
     
     class Meta:
         verbose_name_plural = "PRODUCTS"
+        ordering = ("-id",)
     
 class ProductAttributes(models.Model):
     attribute_name = models.CharField(max_length=50)
@@ -53,6 +54,7 @@ class ProductAttributes(models.Model):
     
     class Meta:
         verbose_name_plural = "PRODUCT ATTRIBUTES"
+        ordering = ("-id",)
 
 class ProductVariants(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
@@ -66,6 +68,7 @@ class ProductVariants(models.Model):
     
     class Meta:
         verbose_name_plural = "PRODUCT VARIANTS"
+        ordering = ("-id",)
     
 class ProductImages(models.Model):
     products = models.ManyToManyField(ProductVariants)
@@ -77,3 +80,7 @@ class ProductImages(models.Model):
     
     class Meta:
         verbose_name_plural = "PRODUCT IMAGES"
+
+class Banners(models.Model):
+    banner = models.ImageField(upload_to="banners/")
+    url_path = models.URLField(null=False)

@@ -31,7 +31,7 @@ def getUserItems(request):
     total_orders = Orders.objects.filter(user=curr_user)
     context = {
         "cart_counter": len(cartItems),
+        "total_orders": len(total_orders),
         "total_amount": total_amount,
-        "total_orders": total_orders,
     }
     return Response(context, status=HTTP_200_OK)

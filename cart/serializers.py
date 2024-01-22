@@ -53,3 +53,38 @@ class Address_Serializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerAddress
         fields = "__all__"
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+    class Meta:
+        model = OrderItem
+        fields = "__all__"
+
+    def get_product(self, obj):
+        product_data = {}
+        product_attributes = {}
+        image_data = None
+        product = ProductVariants.objects.get(id=obj.product.id)
+        product_imgs = ProductImages.objects.filter(products=product)
+        for attr in product.product_attributes.all():
+            product_attributes[attr.attribute_name] = attr.attribute_value
+        for img in product_imgs:
+            if img.default_img == True:
+                image_data = img.image.url
+        product_data['product_name'] = product.product.product_name
+        product_data['price'] = product.price
+        product_data['product_attributes'] = product_attributes
+        product_data['image'] = image_data
+        return product_data
+
+class OrderSerializer(serializers.ModelSerializer):
+    orderItems = serializers.SerializerMethodField()
+    class Meta:
+        model = Orders
+        fields = "__all__"
+
+    def get_orderItems(self, obj):
+        items = OrderItem.objects.filter(order=obj)
+        serializer = OrderItemSerializer(items, many=True)
+        return serializer.data

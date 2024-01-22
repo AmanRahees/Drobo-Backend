@@ -10,6 +10,7 @@ urlpatterns = [
     path("accounts/token/refresh", TokenRefreshAPI.as_view(), name="token-refresh-api"),
 
     # SHOP
+    path("shop/banners", Banner_API.as_view(), name="get-banner-api"),
     path("shop/products", Shop_API.as_view(), name="shop-products-api"),
     path("shop/product/<int:pk>", ProductView_API.as_view(), name="product-view-api"),
 
@@ -19,4 +20,13 @@ urlpatterns = [
     # CART
     path("cart", Cart_API.as_view(), name="carts-api"),
     path("cart/<int:pk>", Cart_API.as_view(), name="cart-api"),
+
+    #CHECKOUT
+    path("checkout/place-order", Place_Order_API.as_view(), name="place-order-api"),
+    # MY ORDERS
+    path("profile/my-orders", Orders_API.as_view(), name="my-orders-api"),
+    path("profile/my-orders/<int:pk>", Orders_API.as_view(), name="order-view-api"),
+
+    # Invoice
+    path("invoice/<int:pk>", Invoice_API.as_view(), name="invoice-api"),
 ]

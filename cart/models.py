@@ -35,14 +35,14 @@ orderstatus = (
     ('Order Confirmed', 'Order Confirmed'),
     ('Shipped', 'Shipped'),
     ('Out for Delivery', 'Out for Delivery'),
-    ('Completed', 'Completed'),
-    ('Order cancelled', 'Order cancelled')
+    ('Delivered', 'Delivered'),
+    ('Order Cancelled', 'Order Cancelled')
 )
 
 class Orders(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=256)
-    phone = models.IntegerField()
+    phone = models.BigIntegerField()
     house_name = models.CharField(max_length=1024)
     road_name = models.CharField(max_length=1024, blank=True, null=True)
     city = models.CharField(max_length=256)
@@ -51,9 +51,11 @@ class Orders(models.Model):
     pincode = models.CharField(max_length=6)
     type = models.CharField(max_length=100)
     total_price = models.IntegerField()
+    discount_price = models.IntegerField(default=0)
+    grand_total = models.IntegerField(default=0)
     payment_mode = models.CharField(max_length=150)
     payment_id = models.CharField(max_length=250, null=True, blank=True)
-    status = models.CharField(max_length=200, choices=orderstatus, default='Order confirmed')
+    status = models.CharField(max_length=200, choices=orderstatus, default='Order Confirmed')
     tracking_no = models.CharField(max_length=150, null=True)
     order_no = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -61,6 +63,9 @@ class Orders(models.Model):
 
     def __str__(self):
         return f'{self.id} - {self.tracking_no}'
+    
+    class Meta:
+        ordering = ("-id",)
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Orders, on_delete=models.CASCADE, related_name="order_objects")
@@ -70,3 +75,19 @@ class OrderItem(models.Model):
  
     def __str__(self):
         return f'{self.order.order_no} - {self.order.tracking_no}'
+    
+class Coupons(models.Model):
+    coupon_code = models.CharField(max_length=20, unique=True)
+    coupon_value = models.IntegerField(default=5)
+    expiration = models.DateField()
+
+    def __str__(self):
+        return f"{self.coupon_code} ({self.coupon_value})"
+    
+class UserCoupons(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    coupon = models.ForeignKey(Coupons, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} ({self.coupon.coupon_code})"

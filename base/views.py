@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from cart.serializers import *
 from base.func import *
+from base.serializers.others import BannerSerializer
 
 # Create your views here.
 
@@ -22,6 +23,13 @@ class ProductView_API(APIView):
         except:
             return Response(status=HTTP_404_NOT_FOUND)
 
+class Banner_API(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        banners = Banners.objects.all()
+        serializer = BannerSerializer(banners, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
 class Address_API(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -37,3 +45,13 @@ class Address_API(APIView):
             serializer.save()
             return Response(status=HTTP_201_CREATED)
         return Response(status=HTTP_400_BAD_REQUEST)
+    
+class Invoice_API(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, pk):
+        try:
+            order = Orders.objects.get(pk=pk)
+            serializer = OrderSerializer(order, many=False)
+            return Response(serializer.data, status=HTTP_200_OK)
+        except:
+            return Response(status=HTTP_404_NOT_FOUND)

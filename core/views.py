@@ -1,10 +1,11 @@
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from core.serializers.customers import CustomerSerializers, CustomUser
+from core.serializers.others import *
 from core.serializers.descriptors import CategorySerializers, Category, BrandSerializers, Brands
 from core.serializers.products import *
 
@@ -75,12 +76,16 @@ class Category_API(APIView):
         try:
             data = request.data.copy()
             category = Category.objects.get(pk=pk)
-            if type(data['category_image']) == str:
-                data.pop('category_image')
+            try:
+                if type(data['category_image']) == str:
+                    data.pop('category_image')
+            except:
+                pass
             serializer = CategorySerializers(category, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            print(serializer.errors)
             return Response(status=status.HTTP_400_BAD_REQUEST)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -119,8 +124,11 @@ class Brand_API(APIView):
         try:
             data = request.data.copy()
             brand = Brands.objects.get(pk=pk)
-            if type(data['brand_image']) == str:
-                data.pop('brand_image')
+            try:
+                if type(data['brand_image']) == str:
+                    data.pop('brand_image')
+            except:
+                pass
             serializer = BrandSerializers(brand, data=data, partial=True)
             if serializer.is_valid():
                 serializer.save()
@@ -185,7 +193,7 @@ class Product_API(APIView):
         
 class VARIANT_API(APIView):
     permission_classes = [IsAdminUser]
-    def get(self, request, pk):
+    def get(self, request, pk=None):
         if pk:
             try:
                 product = Products.objects.get(pk=pk)
@@ -201,8 +209,10 @@ class VARIANT_API(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND)
         else:
             varinats = ProductVariants.objects.all()
-            serializer = VariantSerializers(varinats, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            paginator = PageNumberPagination()
+            result_page = paginator.paginate_queryset(varinats, request)
+            serializer = VariantSerializers(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = VariantSerializers(data=request.data)
@@ -222,12 +232,109 @@ class VARIANT_API(APIView):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-    def delete(self, request, pk):
+    def delete(self, request, pk=None):
+        if pk:
+            try:
+                variant = ProductVariants.objects.get(pk=pk)
+                variant.delete()
+                return Response(status=status.HTTP_200_OK)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            try:
+                for id in request.data:
+                    variant = ProductVariants.objects.get(id=id)
+                    variant.delete()
+                return Response(status=status.HTTP_200_OK)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        
+class Orders_API(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request, pk=None):
+        if pk is None:
+            orders = Orders.objects.all()
+            serializer = OrderSerializers(orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            try:
+                order = Orders.objects.get(pk=pk)
+                serializer = OrderSerializers(order, many=False)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    def put(self, request, pk):
         try:
-            variant = ProductVariants.objects.get(pk=pk)
-            variant.delete()
+            order = Orders.objects.get(pk=pk)
+            serializer = OrderSerializers(order, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(status=status.HTTP_200_OK)
+            print(serializer.errors)
             return Response(status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-
+class Coupon_API(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                coupon = Coupons.objects.get(pk=pk)
+                serializer = CouponSerializers(coupon, many=False)
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            except:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            coupons = Coupons.objects.all()
+            serializer = CouponSerializers(coupons, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    def post(self, request):
+        serializer = CouponSerializers(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        try:
+            coupon = Coupons.objects.get(pk=pk)
+            serializer = CouponSerializers(coupon, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+    def delete(self, request, pk):
+        try:
+            coupon = Coupons.objects.get(pk=pk)
+            coupon.delete()
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+class Banner_API(APIView):
+    permission_classes = [IsAdminUser]
+    def get(self, request):
+        banners = Banners.objects.all()
+        serializer = BannerSerializer(banners, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        serializer = BannerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        try:
+            banner = Banners.objects.get(pk=pk)
+            banner.delete()
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)

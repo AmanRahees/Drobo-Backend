@@ -20,6 +20,15 @@ urlpatterns = [
     path("variants", VARIANT_API.as_view(), name="variants-api"),
     path("variants/<int:pk>", VARIANT_API.as_view(), name="variant-api"),
 
+    path("orders", Orders_API.as_view(), name="orders-api"),
+    path("orders/<int:pk>", Orders_API.as_view(), name="order-api"),
+
+    path("coupons", Coupon_API.as_view(), name="coupons-api"),
+    path("coupons/<int:pk>", Coupon_API.as_view(), name="coupon-api"),
+
+    path("banners", Banner_API.as_view(), name="banners-api"),
+    path("banners/<int:pk>", Banner_API.as_view(), name="banner-api"),
+
     # Handler Function
     path("get-descriptors", getDescriptors, name="get-descriptors"),
     path("add-alternatives", addAlternatives, name="add-alternatives"),
