@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from core.serializers.others import *
 from core.serializers.descriptors import CategorySerializers, Category, BrandSerializers, Brands
 from core.serializers.products import *
+from cart.models import *
 
 # views
 
@@ -270,8 +271,8 @@ class Orders_API(APIView):
             serializer = OrderSerializers(order, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                orderTrack = OrderTracking.objects.create(order=order, status=order.status)
                 return Response(status=status.HTTP_200_OK)
-            print(serializer.errors)
             return Response(status=status.HTTP_200_OK)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)

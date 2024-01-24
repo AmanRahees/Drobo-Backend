@@ -6,6 +6,7 @@ from cart.views import *
 urlpatterns = [
     # ACCOUNTS
     path("accounts/register", RegisterAPI.as_view(), name="register-api"),
+    path("accounts/verify", VerifyAPI.as_view(), name="account-verify-api"),
     path("accounts/login", LoginAPI.as_view(), name="login-api"),
     path("accounts/token/refresh", TokenRefreshAPI.as_view(), name="token-refresh-api"),
 
@@ -20,9 +21,14 @@ urlpatterns = [
     # CART
     path("cart", Cart_API.as_view(), name="carts-api"),
     path("cart/<int:pk>", Cart_API.as_view(), name="cart-api"),
+    
+    # COUPON
+    path("profile/coupon", Coupon_API.as_view(), name="user-coupons-api"),
+    path("profile/coupon/<int:pk>", Coupon_API.as_view(), name="user-coupon-api"),
 
     #CHECKOUT
     path("checkout/place-order", Place_Order_API.as_view(), name="place-order-api"),
+
     # MY ORDERS
     path("profile/my-orders", Orders_API.as_view(), name="my-orders-api"),
     path("profile/my-orders/<int:pk>", Orders_API.as_view(), name="order-view-api"),

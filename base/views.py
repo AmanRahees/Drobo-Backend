@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from cart.serializers import *
 from base.func import *
@@ -11,8 +12,11 @@ from base.serializers.others import BannerSerializer
 class Shop_API(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
-        result = getShopProducts()
-        return Response(result, status=HTTP_200_OK)
+        variants = ProductVariants.objects.all().exclude(status=False, product__status=False)
+        paginator = PageNumberPagination()
+        result_page = paginator.paginate_queryset(variants, request)
+        serializer = ShopProductSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     
 class ProductView_API(APIView):
     permission_classes = [AllowAny]

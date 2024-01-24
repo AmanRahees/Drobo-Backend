@@ -62,6 +62,24 @@ class ProductVariants(models.Model):
     price = models.IntegerField(null=False)
     stock = models.IntegerField(default=0)
     status = models.BooleanField(default=True)
+
+    def offer_price(self):
+        price = int(self.price)
+        category_offer = int(self.product.category.category_offer) if self.product.category.category_offer else 0
+        brand_offer = int(self.product.brand.brand_offer) if self.product.brand.brand_offer else 0
+        product_offer = int(self.product.product_offer) if self.product.product_offer else 0
+        max_discount = max(category_offer, brand_offer, product_offer)
+        if max_discount > 0:
+            discounted_price = round(price - (price * max_discount / 100))
+            return discounted_price
+        else:
+            return price
+        
+    def max_offer(self):
+        category_offer = int(self.product.category.category_offer) if self.product.category.category_offer else 0
+        brand_offer = int(self.product.brand.brand_offer) if self.product.brand.brand_offer else 0
+        product_offer = int(self.product.product_offer) if self.product.product_offer else 0
+        return max(category_offer, brand_offer, product_offer)
     
     def __str__(self):
         return self.product.product_name

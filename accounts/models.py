@@ -40,7 +40,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=100, default="Male")
     otp = models.IntegerField(null=True, blank=True)
     role = models.CharField(max_length=20, default='customer')
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)

@@ -76,6 +76,11 @@ class OrderItem(models.Model):
     def __str__(self):
         return f'{self.order.order_no} - {self.order.tracking_no}'
     
+class OrderTracking(models.Model):
+    order = models.ForeignKey(Orders, on_delete=models.CASCADE, related_name="order_tracking")
+    status = models.CharField(max_length=256)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
 class Coupons(models.Model):
     coupon_code = models.CharField(max_length=20, unique=True)
     coupon_value = models.IntegerField(default=5)
@@ -87,7 +92,14 @@ class Coupons(models.Model):
 class UserCoupons(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     coupon = models.ForeignKey(Coupons, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=False)
+    is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            UserCoupons.objects.filter(user=self.user, is_active=True).exclude(pk=self.pk).update(is_active=False)
+        super(UserCoupons, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.email} ({self.coupon.coupon_code})"

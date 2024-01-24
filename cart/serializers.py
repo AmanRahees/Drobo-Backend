@@ -8,11 +8,13 @@ class CartProductSerializer(serializers.Serializer):
     product_attributes = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     price = serializers.IntegerField()
+    offer_price = serializers.IntegerField()
+    max_offer = serializers.IntegerField()
     stock = serializers.IntegerField()
 
     class Meta:
         model = ProductVariants
-        fields = ('id', 'product', 'product_attributes', 'price', 'stock', 'images')
+        fields = ('id', 'product', 'product_attributes', 'price','offer_price', 'max_offer', 'stock', 'images')
 
     def get_product(self, obj):
         return {
@@ -25,6 +27,12 @@ class CartProductSerializer(serializers.Serializer):
     
     def get_price(self, obj):
         return obj.price
+    
+    def get_offer_price(self, obj):
+        return obj.offer_price()
+    
+    def get_max_offer(self, obj):
+        return obj.max_offer()
     
     def get_stock(self, obj):
         return obj.stock
@@ -54,7 +62,6 @@ class Address_Serializer(serializers.ModelSerializer):
         model = CustomerAddress
         fields = "__all__"
 
-
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField()
     class Meta:
@@ -78,8 +85,14 @@ class OrderItemSerializer(serializers.ModelSerializer):
         product_data['image'] = image_data
         return product_data
 
+class OrderTrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderTracking
+        fields = "__all__"
+
 class OrderSerializer(serializers.ModelSerializer):
     orderItems = serializers.SerializerMethodField()
+    orderTracks = serializers.SerializerMethodField()
     class Meta:
         model = Orders
         fields = "__all__"
@@ -87,4 +100,30 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_orderItems(self, obj):
         items = OrderItem.objects.filter(order=obj)
         serializer = OrderItemSerializer(items, many=True)
+        return serializer.data
+    
+    def get_orderTracks(self, obj):
+        trackings = OrderTracking.objects.filter(order=obj)
+        serializer = OrderTrackingSerializer(trackings, many=True)
+        return serializer.data
+    
+class CouponSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Coupons
+        fields = "__all__"
+
+class UserCouponSerializers(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    coupon = serializers.SerializerMethodField()
+    class Meta:
+        model = UserCoupons
+        fields = "__all__"
+
+    def get_user(self, obj):
+        user = CustomUser.objects.get(id=obj.user.id)
+        return user.email
+    
+    def get_coupon(self, obj):
+        coupon = Coupons.objects.get(id=obj.coupon.id)
+        serializer = CouponSerializers(coupon, many=False)
         return serializer.data

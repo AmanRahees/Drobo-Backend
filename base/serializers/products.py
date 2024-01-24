@@ -8,7 +8,7 @@ class ShopProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductVariants
-        fields = ('id', 'product', 'product_attributes', 'price', 'stock', 'images')
+        fields = ('id', 'product', 'product_attributes', 'price', 'offer_price', 'max_offer', 'stock', 'images')
 
     def get_product(self, obj):
         return {
@@ -54,6 +54,8 @@ class _VariantSerializer(serializers.Serializer):
     variant_id = serializers.IntegerField()
     attributes = _AttributeSerializer(many=True)
     price = serializers.IntegerField()
+    offer_price = serializers.IntegerField()
+    max_offer = serializers.IntegerField()
     stock = serializers.IntegerField()
     images = _ImageSerializer(many=True)
 

@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from contexts.serializers import *
 from cart.models import *
+from cart.serializers import UserCouponSerializers
 
 # Create your views here.
 
@@ -26,12 +27,22 @@ def getUserItems(request):
     curr_user = request.user
     cartItems = Cart.objects.filter(user=curr_user)
     total_amount = 0
+    discount_amount = 0
     for item in cartItems:
-        total_amount += item.cart_product.price * item.quantity
+        total_amount += item.cart_product.offer_price() * item.quantity
     total_orders = Orders.objects.filter(user=curr_user)
+    activeUserCoupons = UserCoupons.objects.filter(is_active=True)
+    userCoupon = {}
+    if (activeUserCoupons):
+        _coupon = activeUserCoupons[0]
+        serializer = UserCouponSerializers(_coupon, many=False)
+        userCoupon = serializer.data
+        discount_amount = round((_coupon.coupon.coupon_value / 100) * total_amount)
     context = {
         "cart_counter": len(cartItems),
         "total_orders": len(total_orders),
         "total_amount": total_amount,
+        "discount_amount": discount_amount,
+        "active_coupon": userCoupon,
     }
     return Response(context, status=HTTP_200_OK)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from accounts.models import CustomUser
-from cart.models import Orders, OrderItem, Coupons
+from cart.models import Orders, OrderItem, Coupons, OrderTracking
 from inventory.models import Products, ProductVariants, ProductAttributes, ProductImages, Banners
 
 class CustomerSerializers(serializers.ModelSerializer):
@@ -31,9 +31,15 @@ class OrderItemSerializers(serializers.ModelSerializer):
         product_data['image'] = image_data
         return product_data
 
+class OrderTrackingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderTracking
+        fields = "__all__"
+
 class OrderSerializers(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     orderItems = serializers.SerializerMethodField()
+    orderTracks = serializers.SerializerMethodField()
     class Meta:
         model = Orders
         fields = "__all__"
@@ -50,6 +56,11 @@ class OrderSerializers(serializers.ModelSerializer):
     def get_orderItems(self, obj):
         items = OrderItem.objects.filter(order=obj)
         serializer = OrderItemSerializers(items, many=True)
+        return serializer.data
+    
+    def get_orderTracks(self, obj):
+        trackings = OrderTracking.objects.filter(order=obj)
+        serializer = OrderTrackingSerializer(trackings, many=True)
         return serializer.data
     
 class CouponSerializers(serializers.ModelSerializer):

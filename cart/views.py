@@ -1,11 +1,12 @@
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.status import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from cart.serializers import CartSerializers, OrderSerializer
-from cart.models import Cart, CustomerAddress, Orders, OrderItem
+from cart.serializers import CartSerializers, OrderSerializer, UserCouponSerializers
+from cart.models import Cart, CustomerAddress, Orders, OrderItem, Coupons, UserCoupons
 from inventory.models import ProductVariants
-from cart.func import generateOrderIds
+from cart.func import *
 
 # Create your views here.
 
@@ -31,7 +32,7 @@ class Cart_API(APIView):
                     cartItem = Cart.objects.create(user=request.user,cart_product = product, quantity = 1)
                     return Response(status=HTTP_201_CREATED)
             else:
-                return Response(status=HTTP_200_OK)
+                return Response(status=HTTP_204_NO_CONTENT)
         except:
             return Response(status=HTTP_404_NOT_FOUND)
         
@@ -55,7 +56,46 @@ class Cart_API(APIView):
             return Response(status=HTTP_200_OK)
         except:
             return Response(status=HTTP_404_NOT_FOUND)
+
+class Coupon_API(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        userCoupons = UserCoupons.objects.filter(user=request.user)
+        serializer = UserCouponSerializers(userCoupons, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)      
+    
+    def post(self, request):
+        try:
+            curr_user = request.user
+            code = request.data.get('code')
+            coupon = Coupons.objects.get(coupon_code=code)
+            if coupon.expiration < timezone.now().date():
+                return Response(status=HTTP_204_NO_CONTENT)
+            userCoupon_exists = UserCoupons.objects.filter(user=curr_user, coupon=coupon).exists()
+            if (userCoupon_exists):
+                userCoupon = UserCoupons.objects.get(user=curr_user, coupon=coupon)
+                if userCoupon.is_used is True:
+                    return Response(status=HTTP_226_IM_USED)
+                userCoupon.is_active = True
+                userCoupon.save()
+                serializer = UserCouponSerializers(userCoupon, many=False)
+                return Response(serializer.data, status=HTTP_200_OK)
+            else:
+                userCoupon = UserCoupons.objects.create(user=curr_user, coupon=coupon, is_active=True)
+                serializer = UserCouponSerializers(userCoupon, many=False)
+                return Response(serializer.data, status=HTTP_201_CREATED)
+        except:
+            return Response(status=HTTP_400_BAD_REQUEST)
         
+    def put(self, request, pk=None):
+        try:
+            userCoupon = UserCoupons.objects.get(pk=pk)
+            userCoupon.is_active = False
+            userCoupon.save()
+            return Response(status=HTTP_200_OK)
+        except:
+            return Response(status=HTTP_404_NOT_FOUND)
+
 class Place_Order_API(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -63,10 +103,16 @@ class Place_Order_API(APIView):
             curr_user = request.user
             cartItem = Cart.objects.filter(user=curr_user)
             total_amount = 0
+            discount_amount = 0
+            grand_total = 0
             for item in cartItem:
-                total_amount += item.cart_product.price * item.quantity
+                total_amount += item.cart_product.offer_price() * item.quantity
             address_obj = CustomerAddress.objects.get(pk=request.data['address'])
             ORDER_ID, TRACKING_NO = generateOrderIds()
+            discount_value = getDiscounValue(curr_user)
+            if discount_value > 0:
+                discount_amount = round((discount_value/100)*total_amount)
+            grand_total = total_amount - discount_amount
             order = Orders.objects.create(
                 user = curr_user,
                 full_name = address_obj.full_name,
@@ -79,6 +125,8 @@ class Place_Order_API(APIView):
                 pincode = address_obj.pincode,
                 type = address_obj.type,
                 total_price = total_amount,
+                discount_price = discount_amount,
+                grand_total = grand_total,
                 order_no = ORDER_ID,
                 tracking_no = TRACKING_NO,
                 payment_mode = request.data['payment_method'],
@@ -95,7 +143,8 @@ class Place_Order_API(APIView):
                 order_product.stock -= item.quantity
                 order_product.save()
             Cart.objects.filter(user=curr_user, cart_product__status=True).delete()
-            return Response(status=HTTP_200_OK)
+            serializer = OrderSerializer(order, many=False)
+            return Response(serializer.data, status=HTTP_200_OK)
         except:
             return Response(status=HTTP_404_NOT_FOUND)
         

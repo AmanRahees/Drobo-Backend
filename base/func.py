@@ -1,14 +1,6 @@
 from base.serializers.products import *
 from inventory.models import *
 from django.db.models.functions import Random
-
-def getShopProducts():
-    try:
-        variants = ProductVariants.objects.annotate(random_order=Random(seed=2)).order_by('random_order')
-        serializer = ShopProductSerializer(variants, many=True)
-        return serializer.data
-    except:
-        return None
     
 def getProductData(pk):
     product = Products.objects.get(id=pk)
@@ -32,6 +24,8 @@ def getProductData(pk):
             'variant_id': variant.id,
             'attributes': attribute_data,
             'price': variant.price,
+            'offer_price': variant.offer_price(),
+            'max_offer': variant.max_offer(),
             'stock': variant.stock,
             'images': image_data
         })
