@@ -16,7 +16,9 @@ urlpatterns = [
     path("shop/product/<int:pk>", ProductView_API.as_view(), name="product-view-api"),
 
     # PROFILE
-    path("profile/address", Address_API.as_view(), name="address-api"),
+    path("profile", Profile_API.as_view(), name="profile-api"),
+    path("profile/address", Address_API.as_view(), name="addresses-api"),
+    path("profile/address/<int:pk>", Address_API.as_view(), name="address-api"),
 
     # CART
     path("cart", Cart_API.as_view(), name="carts-api"),

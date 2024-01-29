@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from inventory.models import *
 from core.serializers.descriptors import *
 from core.serializers.alternatives import _ProductSerializer, _VariantSerializer, _ImageSerializer, _AttributeSerializer
+from core.serializers.products import ProductSerializers
 from inventory.func import *
 
 # Create your views here.
@@ -21,6 +22,13 @@ def getDescriptors(request):
         "brands": brand_serializer.data
     }
     return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def getAllProducts(request):
+    products = Products.objects.all().exclude(status=False)
+    serializer = ProductSerializers(products, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def addAlternatives(request):

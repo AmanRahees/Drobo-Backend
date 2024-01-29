@@ -1,6 +1,7 @@
 from base.serializers.products import *
 from inventory.models import *
 from django.db.models.functions import Random
+from rest_framework.pagination import PageNumberPagination
     
 def getProductData(pk):
     product = Products.objects.get(id=pk)
@@ -69,3 +70,8 @@ def getVariantData(pk):
         unique.append(item['COLOR'])
     print(set(unique))
     return variant_data
+
+class ProductListPagination(PageNumberPagination):
+    page_size = 30
+    page_size_query_param = 'page_size'
+    max_page_size = 10000

@@ -31,6 +31,7 @@ urlpatterns = [
 
     # Handler Function
     path("get-descriptors", getDescriptors, name="get-descriptors"),
+    path("get-products", getAllProducts, name="get-all-products"),
     path("add-alternatives", addAlternatives, name="add-alternatives"),
     path("get-alternatives/<int:id>", getAlternatives, name="get-alternatives"),
 ]

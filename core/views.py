@@ -158,8 +158,10 @@ class Product_API(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND)
         else:
             products = Products.objects.all()
-            serializer = ProductSerializers(products, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            paginator = PageNumberPagination()
+            result_page = paginator.paginate_queryset(products, request)
+            serializer = ProductSerializers(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
         
     def post(self, request):
         serializer = ProductSerializers(data=request.data)

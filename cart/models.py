@@ -103,3 +103,6 @@ class UserCoupons(models.Model):
 
     def __str__(self):
         return f"{self.user.email} ({self.coupon.coupon_code})"
+    
+    class Meta:
+        ordering = ("-id",)

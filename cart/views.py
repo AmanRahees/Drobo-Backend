@@ -24,10 +24,13 @@ class Cart_API(APIView):
                 is_cart_product_exists = Cart.objects.filter(user=request.user,cart_product = product).exists()
                 if is_cart_product_exists:
                     cartItem = Cart.objects.get(user=request.user,cart_product = product)
-                    cartItem.quantity += 1
-                    cartItem.save()
-                    serializer = CartSerializers(cartItem, many=False)
-                    return Response(serializer.data, status=HTTP_200_OK)
+                    if product.stock > cartItem.quantity:
+                        cartItem.quantity += 1
+                        cartItem.save()
+                        serializer = CartSerializers(cartItem, many=False)
+                        return Response(serializer.data, status=HTTP_200_OK)
+                    else:
+                        return Response(status=HTTP_226_IM_USED)
                 else:
                     cartItem = Cart.objects.create(user=request.user,cart_product = product, quantity = 1)
                     return Response(status=HTTP_201_CREATED)
@@ -90,7 +93,7 @@ class Coupon_API(APIView):
     def put(self, request, pk=None):
         try:
             userCoupon = UserCoupons.objects.get(pk=pk)
-            userCoupon.is_active = False
+            userCoupon.is_active = not userCoupon.is_active
             userCoupon.save()
             return Response(status=HTTP_200_OK)
         except:
@@ -113,6 +116,8 @@ class Place_Order_API(APIView):
             if discount_value > 0:
                 discount_amount = round((discount_value/100)*total_amount)
             grand_total = total_amount - discount_amount
+            payment_mode = request.data.get('payment_method', None)
+            payment_id = request.data.get('payment_id', None)
             order = Orders.objects.create(
                 user = curr_user,
                 full_name = address_obj.full_name,
@@ -129,8 +134,8 @@ class Place_Order_API(APIView):
                 grand_total = grand_total,
                 order_no = ORDER_ID,
                 tracking_no = TRACKING_NO,
-                payment_mode = request.data['payment_method'],
-                payment_id = None
+                payment_mode = payment_mode,
+                payment_id = payment_id
             )
             for item in cartItem:
                 OrderItem.objects.create(

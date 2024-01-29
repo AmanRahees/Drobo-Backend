@@ -42,20 +42,25 @@ def convert_data(data):
         for key, value in variant.items():
             if key not in ['id', 'product', 'price', 'stock', 'status']:
                 attrs.append({key: value})
-        
-        transformed_data = {
-            'product': variant['product'],
-            'product_attributes': attrs,
-            'price': variant['price'],
-            'stock': variant['stock'],
-            'status': variant['status']
-        }
-        variant_data.append(transformed_data)
-
+        try:
+            transformed_data = {
+                'product': variant['product'],
+                'product_attributes': attrs,
+                'price': variant['price'],
+                'stock': variant['stock'],
+                'status': variant['status']
+            }
+            variant_data.append(transformed_data)
+        except:
+            pass
+    print(images)
     for image in images:
-        image_transformed_data = {
-            'default_img': image.get('default_img').lower() == 'true',
-            'image': image.get('image')
-        }
-        image_data.append(image_transformed_data)
+        try:
+            image_transformed_data = {
+                'default_img': image.get('default_img').lower() == 'true',
+                'image': image.get('image')
+            }
+            image_data.append(image_transformed_data)
+        except:
+            pass
     return variant_data, image_data
